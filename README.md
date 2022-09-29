@@ -89,8 +89,6 @@ At the very start of the project, we agreed as a group that we would run a daily
 
 ### Day 2 - Backend and Starting the frontend
 
-![game-screenshot](./src/Img/screenshots/image8.png)
-
 By using Zoom, Slack and google meetup, we were able to communicate with our team. We planned what each of us should be doing using Trello and who should be doing it. For the second day, I worked on partly connecting to the mongoose database. I also made the middleware, routes and controllers. We did have some issues dealing with merge conflicts at the beginning of each day, as we all wanted to work on the API at the same time and it did take a vast majority of the day to sort out these conflicts. This wasn’t ideal and it limited how much work we wanted to complete in a day. We decided on Zoom that we should assign and limit tasks on Trello. So I did the seeding data and helped construct some of the models for it. Our primary aim for day 2 was to get the majority of the API completed and ready to deploy on Heroku.
  
 As the team, we all decided that it might be wise to deploy it at the end of day two using Heroku, as we might have problems closer to the deadline. We were successful in deploying the API, one of the biggest hurdles was completed and we are now able to focus on the frontend and slowly update the API when needed.
@@ -133,11 +131,46 @@ With the registration, login and authorisation completed, we went back to Zoom a
 
 I then matched the API request with the destination ID. I used useParams which returns an object of key/value pairs of the dynamic params from the current URL that was matched by the route path. This was done by routing it through the App.js file.
 
+```Javascript
+    // Add review
+const handleSubmit = async (event) => {
+  event.preventDefault()
+  try {
+    const { data } = await axios.post(`${API_URL}/travel/${destinationId}`, review, {
+      headers: {
+        Authorization: `Bearer ${getToken()}`
+      },
+    })
+    console.log(data)
+    navigate(`/travel/${destinationId}`)
+  } catch (error) {
+    console.log(error)
+    setErrors(error)
+  }
+}
+```
+
 
 
 ### Day 7 - Register, login and authorization
 
 On the 7th day, the last part is to get the profile image working. I used Cloudinary for this part, which enables users to upload, store, manage, manipulate, and deliver images and videos for websites and apps. I made a function so that the user could upload their image to Cloudinary. By setting a default profile image the user will be able to upload a new image using Hooks by replacing the uploaded image with the image stored in the cloudinary account. 
+
+
+```Javascript
+    // Upload to Cloudinary
+  const uploadImage = async (event) => {
+    event.preventDefault()
+    const formData = new FormData()
+    formData.append('file', imageSelect)
+    formData.append('upload_preset', 'djssiss0') //? djssiss0 is the key + danedskby is the name 
+    const { data } = await axios.post('https://api.cloudinary.com/v1_1/danedskby/image/upload', formData)
+    // ! this is my (serhan miah) login for the cloudinary - for destination images
+    setNewProfileImg(data.url)
+    setUpdatedUserProfile({ ...updatedUserProfile, profileImg: data.url })
+  }
+
+```
 
 
 ## Travel Library Pages AllDestination, Single page and adding review images
@@ -149,14 +182,170 @@ All Destionation in the frontend
 ![travel-screenshot](./src/img/screenshots/image20.png)
 
 
+```Javascript
+    // JS map with all the destination 
+import axios from 'axios'
+import { useEffect, useState } from 'react'
+import { Container } from 'react-bootstrap'
+import Card from 'react-bootstrap/Card'
+import Row from 'react-bootstrap/Row'
+import Col from 'react-bootstrap/Col'
+import { Link } from 'react-router-dom'
+import API_URL from '../config.js'
+import Spinner from './Spinner.js'
 
 
+const AllDestination = () => {
+
+const [ destinationData, setDestinationData ] = useState([])
+const [ errors, setErrors ] = useState(false)
+useEffect(() => {
+  const getData = async () => {
+    try {
+      const { data } = await axios.get(`${API_URL}/travel`)
+      setDestinationData(data)
+    } catch (error) {
+      setErrors(error.message)
+      console.log(error.message)
+    }
+  } 
+  getData()
+}, [])
 
 
+  return (
+    <>
+    { destinationData[0] ?
+    <div className='all-destination-page'>
+      <Container as="main" className='destination-index'>
+      <h1 className='text-center mb-4'>All Destinations</h1>
+      <Row className='destination-row'>
+        { destinationData.map(item => {
+            const { _id } = item
+            return (
+              <Col key={_id} md="5" lg="4" className='mb-4'>
+                <Link style={{ textDecoration: 'none', color: 'black' }} to={`/travel/${_id}`}>
+                  <Card >
+                    <Card.Img className='card-images' variant='top' src={item.imgUrl[0]}></Card.Img>
+                    <Card.Body className='bg-light'>
+                      <Card.Title className='multi-card text-center mb-0 text-decoration-none'>{item.name} - {item.country}</Card.Title>
+                    </Card.Body>
+                  </Card>
+                </Link>
+              </Col>
+            )
+          })
+        }
+      </Row>
+    </Container>
+    </div>
+    :
+    <h2 className="text-center">
+      { errors ? 'Something went wrong. Please try again later' : <Spinner />}
+    </h2>
+      }
+  </>
+  )
+}
 
 
+export default AllDestination
+```
 
+```Javascript
+    // Single destination useEffects
+useEffect(() => {
+    const getData = async () => {
+      try {
+        const { data } = await axios.get(`${API_URL}/travel/${destinationId}`)
+        setDestination(data)
+      } catch (error) {
+        setErrors(error.message)
+        console.log(error.message)
+      }
+    }
+    getData()
+  }, [destinationId, reviewsRemoved])
 
+```
+
+```Javascript
+    // JSX Map conditional 
+ return (
+    <div className='destination-page'>
+      <Container as="main">
+        { destination ? 
+          
+          <div className="kitchen-sink">
+            <h1>{destination.name}</h1>
+            <Card border="dark" className="destination-card bg-transparent">
+              <CarouselImages />
+              <Card.Body className="bg-light-gray">
+                <Card.Title className="single-card">{destination.name}</Card.Title>
+                <Card.Text>
+                  {destination.description}
+                </Card.Text>
+              </Card.Body>
+              <ListGroup className="list-group-flush">
+                <ListGroup.Item>Country: {destination.country}</ListGroup.Item>
+                {/* <ListGroup.Item>Rating: {destination.rating}</ListGroup.Item>
+                <ListGroup.Item>Activities: {destination.activities}</ListGroup.Item> */}
+              </ListGroup>
+            </Card>
+              <Container as='section' className='review-card'>
+                  <h3>Reviews</h3>
+                  { destination.reviews.length > 0
+                    ?
+                    destination.reviews.map(review => {
+                      const { destinationId, reviewId, reviewText, rating, displayName, reviewImgUrl, activities } = review
+                      return (                       
+                        <Card key={reviewId} className="re-card">
+                            <Card.Img variant='top' src={reviewImgUrl[0] ? reviewImgUrl[0] : 'https://sei65-destinations.s3.eu-west-1.amazonaws.com/users/default-image.jpg' }></Card.Img>
+                            <Card.Body>      
+                              <Card.Text>
+                                {reviewText}
+                              </Card.Text>  
+                                <ListGroup className="list-group-flush">
+                                  <ListGroup.Item><span>👤</span> {displayName}</ListGroup.Item>
+                                  <ListGroup.Item>Rating: {rating}</ListGroup.Item>
+                                  <ListGroup.Item>Activities: {activities.join(', ')}</ListGroup.Item>
+                                </ListGroup>       
+                              { userIsOwner(review) &&              
+                              <div className="buttons mb-4">
+                                <Button variant="danger" onClick={event => deleteReview(event, destinationId, reviewId)}>Delete</Button>
+                                <Link to={`/edit-review/${destinationId}/${reviewId}`} className='btn btn-primary'>Edit Review</Link>
+                              </div>  
+                              }                         
+                            </Card.Body>
+                          </Card>          
+                        )
+                    })
+                    :
+                    <>
+                      { errors ? <h2>Something went wrong. Please try again later</h2> : <p>No reviews yet</p>}
+                    </>
+                  }
+              </Container>
+            { userIsAuthenticated() ? 
+              <Link to={`/review/${destinationId}`}>
+                <button className='back-button btn btn-primary'>Add a review</button>
+              </Link>
+              :
+              <Link to={'/'}>
+                <button className='btn btn-primary'>Login to add a review</button>
+              </Link>
+}               
+          </div>
+          :
+          <h2 className="text-center">
+            { errors ? 'Something went wrong. Please try again later' : <Spinner />}
+          </h2>
+        } 
+        <Link to="/travel" className='back-button btn btn-primary'>Back to all destinations</Link>
+      </Container>
+    </div>
+  )
+```
 
 ![travel-screenshot](./src/img/screenshots/image19.png)
 
@@ -166,24 +355,39 @@ Once the design was done, I started to work on the review component. I wanted th
 
 Code Snippet on the review 
 
-
-
+```Javascript
+    // Again using Cloudinary for media content
+const uploadImage = async (event) => {
+  event.preventDefault()
+  const formData = new FormData()
+  formData.append('file', reviewImg)
+  formData.append('upload_preset', 'djssiss0') //? djssiss0 is the key + danedskby is the name 
+  const { data } = await axios.post('https://api.cloudinary.com/v1_1/danedskby/image/upload', formData)
+  // ! this is my (serhan miah) login for the cloudinary - for destination images
+  setReviewImg(data.url)
+  setReview({ ...review, reviewImgUrl: [ data.url ]})
+}
+```
 
 How Cloudinary is store
 ![travel-screenshot](./src/img/screenshots/image18.png)
 
 
-
-
-
-
-
+```Javascript
+    // Using Hooks in Cloudinary for updating the image.
+const navigate = useNavigate()
+const { destinationId } = useParams()
+const [ review, setReview ] = useState('')
+const [ reviewImg, setReviewImg ] = useState('')
+const [ errors, setErrors ] = useState(false)
+```
 
 Front end review page
-![travel-screenshot](./src/img/screenshots/image5f.png)
+![travel-screenshot](./src/img/screenshots/image5.png)
 
 
-
+Front end result page
+![travel-screenshot](./src/img/screenshots/image1.png)
 
 
 
@@ -191,6 +395,31 @@ Front end review page
 
 The profile page, edit profile page, review and edit the review - all the pages that were made with React component Form and with a few additional features of Cloudinary cloud server. Refactoring each element for our project. Since most of our functionality was using a Form an input, I spent the last few days making sure it would support the react framework and provide a sleek design ready for mobile devices.
 
+```Javascript
+    // React Bootstrap Form.
+<Form className="edit-review-form" onSubmit={handleSubmit}>
+          <h1>Edit Review</h1>
+          <Card key={reviewId} className="edit-review-card">
+            <Card.Img variant='top' src={review.reviewImgUrl[0] ? review.reviewImgUrl[0] : 'https://sei65-destinations.s3.eu-west-1.amazonaws.com/users/default-image.jpg' }></Card.Img>
+            <Card.Body>
+              <Card.Title className='text-center mb-0'>{/*{reviewText}*/}</Card.Title>
+              <Card.Text>
+                {review.reviewText}
+                <Form.Label htmlFor="reviewText">Review Text</Form.Label>
+                <Form.Control as="textarea" rows={4} name="reviewText" placeholder="Edit review text" value={updatedReview.reviewText} onChange={handleChange} />
+              </Card.Text>  
+              <ListGroup className="list-group-flush">
+                <ListGroup.Item><span>👤</span> {review.displayName}</ListGroup.Item>
+                <ListGroup.Item>Rating: {review.rating}</ListGroup.Item>
+                <Form.Control type="number" name="rating" placeholder="Edit rating" value={updatedReview.rating} onChange={handleChange} />
+                <ListGroup.Item>Activites: {review.activities.join(', ')}</ListGroup.Item>
+                <textarea name="activities" placeholder="Edit activities" value={updatedReview.activities} onChange={handleChange} ></textarea>
+              </ListGroup>
+              { newReviewImg ? 
+              <img className='w-100' src={newReviewImg} alt={'User Uploaded Review'} />
+              :
+              <></>
+```
 
 
 
@@ -263,23 +492,7 @@ Add Review
 
 
 
-```Javascript
-    // AXIOS GET REQUEST
-  useEffect(() => {
 
-      const getData = async () => {
-        try {
-          const { data } = await axios.get('https://the-trivia-api.com/api/questions')
-          // console.log(data)
-          setTestData(data)
-          // ! this will be the entire API library
-        } catch (error) {
-          console.log(error)
-        }
-      }
-      getData()
-    }, [visibleQuestion])
-```
 
 
 
