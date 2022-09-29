@@ -70,7 +70,7 @@ Clone or download the repo then in your Terminal run the following commands:
 * Excalidraw (Wireframing)
 * Netlify (deployment)
 
-## TThe Approach Taken: 
+## The Approach Taken: 
 
 ### Day 1 - Planning
 
