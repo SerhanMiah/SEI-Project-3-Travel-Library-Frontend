@@ -151,7 +151,7 @@ const handleSubmit = async (event) => {
 
 
 
-### Day 7 - Register, login and authorization
+### Day 7 - Using Cloudinary to upload profile images: 
 
 On the 7th day, the last part is to get the profile image working. I used Cloudinary to enable users to upload, store, manage, manipulate, and deliver images and videos for websites and apps. I made a function so that the user could upload their image to Cloudinary. By setting a default profile image the user will be able to upload a new image using Hooks by replacing the uploaded image with the image stored in the cloudinary account. 
 
