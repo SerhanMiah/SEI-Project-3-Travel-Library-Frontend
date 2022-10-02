@@ -112,9 +112,6 @@ After our discussion, I started on the landing, destination and single destinati
 
 ### Day 4
 
-On the 4th Day:
-
-
 On the 4th day, we discussed the next part of the project. Kate worked more on the backend and started using AWS S3 to host the images. We got rid of any temporary images and started to use the hosted images in the backend. Since we made significant changes, we discussed as a team on Zoom about git pushing and pulling. We hoped to avoid any serious merge conflicts. After we pulled the database, we re-seed the database and were able to view all the hosted images on the frontend.
 
  
@@ -127,8 +124,6 @@ By using insomnia, I could see if the register and login endpoints were working 
 
 
 ### Day 6 - Register, login and authorization
-
-On the 6th day:
 
 With the registration, login and authorisation completed, we went back to Zoom and Trello. I updated the Team on my progress and moved to the review segment (I wanted peer feedback). I created a new component called ‘review’ and this was a review form for the individual destination. I created an Axios request which links to the database. I used Hooks to hold the review and setReview as an empty string. Then I created a handle submit event which holds Axios post requests. Inside the function, it will hold the headers and the authorization of the user’s token. 
 
